@@ -4,6 +4,10 @@
 #include <od/config.h>
 #include <hal/ops.h>
 #include <string.h>
+// LOCAL PATCH (not part of upstream v0.6.16, not committed): modern
+// libstdc++ no longer pulls in ptrdiff_t transitively at this include
+// depth, so it needs to be pulled in explicitly.
+#include <cstddef>
 
 namespace od
 {

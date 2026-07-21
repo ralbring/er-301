@@ -379,6 +379,16 @@ bool Uart_isEnabled();
 %include <od/graphics/holdview/MorphFader.h>
 %include <od/graphics/holdview/TriggerGroup.h>
 
+// LOCAL PATCH (not part of upstream v0.6.16, not committed): SWIG has no
+// std::vector<std::string> typemap registered here, so it falls back to
+// wrapping FileBrowser::getCheckedPaths()'s by-value return via
+// SwigValueWrapper<T>, whose T&& conversion then fails to bind to the
+// T& parameter expected by the generated stringVectorToLuaTable() call
+// -- a hard C++ error independent of compiler/SWIG version. Ignoring
+// this one method only drops its Lua binding; nothing else in
+// FileBrowser is affected.
+%ignore od::FileBrowser::getCheckedPaths;
+
 %include <od/graphics/fs/FileBrowser.h>
 
 %include <od/graphics/recording/RecordingGraphic.h>
