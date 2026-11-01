@@ -418,8 +418,9 @@ function Pitch:doTuneSet()
   kb:show()
 end
 
+-- S3 is otherwise unused, so it acts like S2 (tune).
 function Pitch:subPressed(i, shifted)
-  if shifted or i ~= 2 then return true end
+  if shifted or (i ~= 2 and i ~= 3) then return true end
   self:beginSubHold(i, self.readout)
   if not self:hasFocus("encoder") then self:focus() end
   return true
