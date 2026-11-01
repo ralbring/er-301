@@ -1,15 +1,17 @@
 #pragma once
 
+#include <od/objects/Inlet.h>
 #include <od/objects/Outlet.h>
-#include <od/objects/measurement/FifoProbe.h>
-#include <hal/timing.h>
 
 namespace od
 {
 
-  // LOCAL PATCH (US-15): lets Lua measure the recent signal on an outlet
-  // (e.g. an external input jack) from the UI thread, the same way MiniScope
-  // taps an outlet through a FifoProbe from the audio thread's pool.
+  // LOCAL PATCH (US-15): lets Lua measure the signal on an outlet (e.g. an
+  // external input jack or a teletype port) from the UI thread. The audio
+  // thread accumulates min/max/sum of every frame; update() turns the samples
+  // since the previous update into mean and peak-to-peak. Unlike FifoProbe
+  // this does not draw from the limited probe pool, so many outlets can be
+  // watched at once.
   class OutletProbe
   {
   public:
@@ -19,19 +21,24 @@ namespace od
     void watch(Outlet *outlet);
     void release();
 
-    // Recomputes mean and peak-to-peak over the samples received since the
-    // previous update, so short pulses between two updates are not missed.
     void update();
     float mean();
     float peakToPeak();
 
+#ifndef SWIGLUA
+    // called from the audio thread
+    void accumulate();
+#endif
+
   protected:
-    Outlet *mpOutlet = 0;
-    FifoProbe *mpProbe = 0;
+    Inlet *mpInput = 0;
+    bool mWatching = false;
+    float mSum = 0.0f;
+    float mMin = 0.0f;
+    float mMax = 0.0f;
+    int mCount = 0;
     float mMean = 0.0f;
     float mPeakToPeak = 0.0f;
-    tick_t mLastUpdate = 0;
-    bool mFirstUpdate = true;
   };
 
 } /* namespace od */
