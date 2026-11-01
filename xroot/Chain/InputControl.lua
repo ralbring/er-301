@@ -174,9 +174,15 @@ function InputControl:startAuto()
   self.autoBaseline = false
   self.titleLabel:setText("Listening...")
   local Timer = require "Timer"
-  self.autoTimer = Timer.every(autoPollPeriod, function()
+  -- Timer.update may call this several times within one slow UI frame, even
+  -- after stopAuto() cancelled it; returning false ends that loop.
+  local handle
+  handle = Timer.every(autoPollPeriod, function()
+    if self.autoTimer ~= handle then return false end
     self:pollAuto()
+    if self.autoTimer ~= handle then return false end
   end)
+  self.autoTimer = handle
 end
 
 function InputControl:stopAuto()
