@@ -101,6 +101,7 @@
 #include <od/objects/mixing/StereoToMono.h>
 
 #include <od/objects/measurement/Monitor.h>
+#include <od/objects/measurement/OutletProbe.h>
 #include <od/objects/measurement/MinMax.h>
 #include <od/objects/measurement/Stress.h>
 
@@ -327,6 +328,7 @@ bool Uart_isEnabled();
 %include <od/objects/measurement/MinMax.h>
 %include <od/objects/measurement/Stress.h>
 %include <od/objects/measurement/Monitor.h>
+%include <od/objects/measurement/OutletProbe.h>
 
 %include <od/objects/heads/Head.h> 
 %include <od/objects/heads/TapeHead.h>

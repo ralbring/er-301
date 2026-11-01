@@ -258,6 +258,38 @@ namespace teletype
     return nticks * mSamplesPerTick;
   }
 
+  int Dispatcher::getCVEventCount()
+  {
+    return mCVEventCount;
+  }
+
+  int Dispatcher::getLastCVPort()
+  {
+    return mLastCVPort;
+  }
+
+  int Dispatcher::getTREventCount()
+  {
+    return mTREventCount;
+  }
+
+  int Dispatcher::getLastTRPort()
+  {
+    return mLastTRPort;
+  }
+
+  void Dispatcher::noteCVEvent(int port)
+  {
+    mLastCVPort = port;
+    mCVEventCount = mCVEventCount + 1;
+  }
+
+  void Dispatcher::noteTREvent(int port)
+  {
+    mLastTRPort = port;
+    mTREventCount = mTREventCount + 1;
+  }
+
   void Dispatcher::process(float *inputs, float *outputs)
   {
     updateTR();
@@ -282,10 +314,12 @@ namespace teletype
       case TO_TR:
         // SC.TR 1-n α --> Set TR value to α (0/1)
         commandTRSet(delay, getPort(msg), getValue(msg));
+        noteTREvent(getPort(msg));
         break;
       case TO_TR_TOG:
         // SC.TR.TOG 1-n --> Toggle TR
         commandTRToggle(delay, getPort(msg));
+        noteTREvent(getPort(msg));
         break;
       case TO_TR_TIME:
         // SC.TR.TIME 1-n α -->  time for TR.PULSE; α in milliseconds
@@ -302,6 +336,7 @@ namespace teletype
       case TO_TR_PULSE:
         // SC.TR.PULSE 1-n --> Pulse TR using TO.TR.TIME/S/M as an interval
         commandTRPulse(delay, getPort(msg));
+        noteTREvent(getPort(msg));
         break;
       case TO_TR_POL:
         // SC.TR.POL 1-n α --> polarity for TO.TR.PULSE set to α (0-1)
@@ -311,10 +346,12 @@ namespace teletype
       case TO_CV:
         // SC.CV 1-n α --> CV target α (bipolar)
         commandCV(delay, getPort(msg), getValue(msg));
+        noteCVEvent(getPort(msg));
         break;
       case TO_CV_SET:
         // SC.CV.SET 1-n α --> set CV to α (bipolar); ignoring SLEW
         commandCVSet(delay, getPort(msg), getValue(msg));
+        noteCVEvent(getPort(msg));
         break;
       case TO_CV_SLEW:
         // SC.CV.SLEW 1-n α --> CV slew time; α in milliseconds
