@@ -139,8 +139,9 @@ do
     i2cSourceGroups[#i2cSourceGroups + 1] = g
     return g
   end
-  -- Adds sources <prefix><firstNumber>... for count consecutive ports.
-  local function add(g, kind, firstPort, count, prefix, firstNumber)
+  -- Adds sources <prefix><firstNumber><suffix>... for count consecutive
+  -- ports.
+  local function add(g, kind, firstPort, count, prefix, firstNumber, suffix)
     for i = 0, count - 1 do
       local port = firstPort + i
       local outlet
@@ -149,7 +150,7 @@ do
       else
         outlet = teletypeTask:getTROutlet(port)
       end
-      local name = prefix .. (firstNumber + i)
+      local name = prefix .. (firstNumber + i) .. (suffix or "")
       local source = Source(name, outlet, true)
       externalSources[name] = source
       g.sources[#g.sources + 1] = source
@@ -162,8 +163,8 @@ do
   add(group("MIDI V", true), "CV", 31, 8, "MV", 1)
   add(group("MIDI G", true), "TR", 21, 8, "MG", 1)
   local cc = group("MIDI CC", true)
-  add(cc, "CV", 41, 8, "MA", 1) -- CC 33
-  add(cc, "CV", 51, 8, "MB", 1) -- CC 34
+  add(cc, "CV", 41, 8, "CC", 1, "/33") -- CC1/33 = CC 33 on channel 1
+  add(cc, "CV", 51, 8, "CC", 1, "/34")
   -- MIDI channel 10 (drums), notes 36-51
   add(group("DRUM T", true), "TR", 61, 16, "DT", 36)
   add(group("DRUM V", true), "CV", 61, 16, "DV", 36)
