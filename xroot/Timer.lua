@@ -28,36 +28,52 @@ local functions = {}
 local function _nothing_() end
 local to_remove = {}
 
+local snapshot = {}
+
 local function update(dt)
 
+  -- LOCAL PATCH (US-15): iterate over a snapshot, because callbacks may add
+  -- timers (adding keys during pairs() breaks next()) or cancel them.
+  local n = 0
   for handle in pairs(functions) do
-    -- handle: {
-    --   time = <number>,
-    --   after = <function>,
-    --   during = <function>,
-    --   limit = <number>,
-    --   count = <number>,
-    -- }
+    n = n + 1
+    snapshot[n] = handle
+  end
 
-    handle.time = handle.time + dt
-    handle.during(dt, math.max(handle.limit - handle.time, 0))
+  for i = 1, n do
+    local handle = snapshot[i]
+    snapshot[i] = nil
+    if functions[handle] then
+      -- handle: {
+      --   time = <number>,
+      --   after = <function>,
+      --   during = <function>,
+      --   limit = <number>,
+      --   count = <number>,
+      -- }
 
-    while handle.time >= handle.limit and handle.count > 0 do
-      if handle.after(handle.after) == false then
-        handle.count = 0
-        break
+      handle.time = handle.time + dt
+      handle.during(dt, math.max(handle.limit - handle.time, 0))
+
+      while handle.time >= handle.limit and handle.count > 0 and
+          functions[handle] do
+        if handle.after(handle.after) == false then
+          handle.count = 0
+          break
+        end
+        handle.time = handle.time - handle.limit
+        handle.count = handle.count - 1
       end
-      handle.time = handle.time - handle.limit
-      handle.count = handle.count - 1
-    end
 
-    if handle.count == 0 then
-      table.insert(to_remove, handle)
+      if handle.count == 0 then
+        table.insert(to_remove, handle)
+      end
     end
   end
 
   for i = 1, #to_remove do
     functions[to_remove[i]] = nil
+    to_remove[i] = nil
   end
 end
 
