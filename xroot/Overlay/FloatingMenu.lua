@@ -173,4 +173,5 @@ return {
   open = open,
   select = select,
   close = close,
+  getDelayTime = getDelayTime,
 }

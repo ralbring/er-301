@@ -126,6 +126,7 @@ end
 
 function ViewControl:onCursorLeave(spot)
   -- app.logInfo("%s.onCursorLeave(%s)",self,spot)
+  self:cancelSubHold()
   self:removeSubGraphic(self.subGraphic)
   self:releaseFocus("dialPressed", "dialReleased", "subPressed", "subReleased",
                     "homeReleased", "homePressed", "zeroPressed",
@@ -294,6 +295,53 @@ end
 function ViewControl:upReleased(shifted)
   if not shifted then self:unfocus() end
   return true
+end
+
+-- Hold-to-edit for sub buttons (local patch, US-14). Call from subPressed
+-- before focusing the readout; the readout must be focused right away so
+-- that the encoder edits it while the button is held.
+function ViewControl:beginSubHold(i, readout)
+  self:cancelSubHold()
+  local hold = {
+    index = i,
+    readout = readout,
+    resume = self:hasFocus("encoder") and self.focusedReadout == readout,
+    value = readout:getValueInUnits(),
+    held = false
+  }
+  local Timer = require "Timer"
+  local FloatingMenu = require "Overlay.FloatingMenu"
+  hold.timer = Timer.after(FloatingMenu.getDelayTime(), function()
+    hold.timer = nil
+    hold.held = true
+  end)
+  self.subHold = hold
+end
+
+function ViewControl:cancelSubHold()
+  local hold = self.subHold
+  if hold and hold.timer then
+    local Timer = require "Timer"
+    Timer.cancel(hold.timer)
+  end
+  self.subHold = nil
+end
+
+-- Call at the top of subReleased. Returns nil if no hold was started for
+-- this button, "held" (focus already released, value kept), "resume" (short
+-- press on the readout that was already focused) or "short".
+function ViewControl:endSubHold(i)
+  local hold = self.subHold
+  if hold == nil or hold.index ~= i then return nil end
+  self:cancelSubHold()
+  if hold.held or hold.readout:getValueInUnits() ~= hold.value then
+    self:unfocus()
+    return "held"
+  elseif hold.resume then
+    return "resume"
+  else
+    return "short"
+  end
 end
 
 function ViewControl:onRemove()

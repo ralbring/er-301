@@ -188,6 +188,7 @@ function InputGate:cancelReleased(shifted)
 end
 
 function InputGate:subReleased(i, shifted)
+  if self:endSubHold(i) then return true end
   if shifted then return false end
   if i == 1 then
     local Overlay = require "Overlay"
@@ -203,7 +204,17 @@ end
 
 function InputGate:subPressed(i, shifted)
   if shifted then return false end
-  if i == 3 then self.comparator:simulateRisingEdge(); end
+  if i == 3 then
+    self.comparator:simulateRisingEdge();
+  elseif i == 2 then
+    self:beginSubHold(i, self.threshold)
+    if not self:hasFocus("encoder") then
+      self:focus()
+      self:setFocusedReadout(self.threshold)
+    elseif self.focusedReadout ~= self.threshold then
+      self:setFocusedReadout(self.threshold)
+    end
+  end
   return true
 end
 

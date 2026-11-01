@@ -705,7 +705,31 @@ function GainBias:doBiasSet()
   kb:show()
 end
 
+function GainBias:subPressed(i, shifted)
+  if shifted or (i ~= 2 and i ~= 3) then return true end
+  local readout = i == 2 and self.gain or self.bias
+  self:beginSubHold(i, readout)
+  if not self:hasFocus("encoder") then
+    self:focus()
+    self:setFocusedReadout(readout)
+  elseif self.focusedReadout ~= readout then
+    self:setFocusedReadout(readout)
+  end
+  return true
+end
+
 function GainBias:subReleased(i, shifted)
+  local hold = self:endSubHold(i)
+  if hold == "resume" then
+    if i == 2 then
+      self:doGainSet()
+    else
+      self:doBiasSet()
+    end
+    return true
+  elseif hold then
+    return true
+  end
   if shifted then
     if i == 2 then
       self:doGainSet()

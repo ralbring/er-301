@@ -188,6 +188,7 @@ function Clock:cancelReleased(shifted)
 end
 
 function Clock:subReleased(i, shifted)
+  if self:endSubHold(i) then return true end
   if shifted then return false end
   if i == 1 then
     local branch = self.branch
@@ -206,6 +207,15 @@ function Clock:subReleased(i, shifted)
 end
 
 function Clock:subPressed(i, shifted)
+  if shifted or (i ~= 2 and i ~= 3) then return true end
+  local readout = i == 2 and self.multiplier or self.divider
+  self:beginSubHold(i, readout)
+  if not self:hasFocus("encoder") then
+    self:focus()
+    self:setFocusedReadout(readout)
+  elseif self.focusedReadout ~= readout then
+    self:setFocusedReadout(readout)
+  end
   return true
 end
 
