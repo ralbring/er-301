@@ -8,7 +8,7 @@ firmware_contents = $(build_dir)/app/kernel.bin
 firmware_contents += $(build_dir)/sbl/SBL
 firmware_contents += $(build_dir)/pbl/MLO
 firmware_contents += $(build_dir)/mods/core-$(FIRMWARE_VERSION).pkg
-firmware_contents += $(build_dir)/mods/teletype-$(FIRMWARE_VERSION).pkg
+# teletype i2c is built into the firmware (local patch, US-15)
 firmware_contents += $(build_dir)/install.lua
 
 $(firmware_archive): $(firmware_contents)

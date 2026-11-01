@@ -9,7 +9,10 @@ local Library = require "Unit.Factory.Library"
 local initialPackagePath = package.path
 
 -- External libraries
-local IgnoredFolderNames = {}
+local IgnoredFolderNames = {
+  -- superseded by built-in teletype i2c (local patch, US-15)
+  teletype = true
+}
 local ExternalLibraryList = {}
 
 -- These libraries will be loaded when LoadLibraries() is called.

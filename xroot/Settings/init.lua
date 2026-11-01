@@ -275,6 +275,33 @@ local defaults = {
       Signal.emit("onUSBModeChanged")
     end
   },
+  teletypeEnable = {
+    category = "Teletype",
+    description = "Teletype i2c enabled?",
+    value = "yes",
+    choices = {
+      "yes",
+      "no"
+    },
+    onSet = function()
+      local TeletypeI2c = require "TeletypeI2c"
+      TeletypeI2c.refresh()
+    end
+  },
+  teletypeAddress = {
+    category = "Teletype",
+    description = "Teletype i2c address:",
+    value = "0x31",
+    choices = {
+      "0x31",
+      "0x32",
+      "0x33"
+    },
+    onSet = function()
+      local TeletypeI2c = require "TeletypeI2c"
+      TeletypeI2c.refresh()
+    end
+  },
   floatingMenuDelay = {
     category = "General",
     description = "Long press time for floating menu:",

@@ -389,6 +389,10 @@ local function init()
   app.logInfo("Application.init: usb")
   USB.init()
 
+  app.logInfo("Application.init: teletype")
+  local TeletypeI2c = require "TeletypeI2c"
+  TeletypeI2c.refresh()
+
   app.logInfo("Application.init: card")
   Card.init()
 

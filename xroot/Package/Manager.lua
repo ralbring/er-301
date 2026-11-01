@@ -161,6 +161,11 @@ end
 
 local function load(package)
   if loaded[package.id] then return true end
+  if package:getName() == "teletype" then
+    app.logInfo("%s: superseded by built-in teletype i2c, not loaded.",
+                package.id)
+    return false
+  end
 
   app.logInfo("Loading package: %s", package.id)
 

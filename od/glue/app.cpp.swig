@@ -73,6 +73,7 @@
 #include <od/tasks/UnitChain.h>
 #include <od/tasks/ObjectList.h>
 #include <od/tasks/InputTask.h>
+#include <od/tasks/TeletypeTask.h>
 #include <od/tasks/OutputTask.h>
 
 // units
@@ -297,6 +298,7 @@ bool Uart_isEnabled();
 %include <od/tasks/UnitChain.h>
 %include <od/tasks/ObjectList.h>
 %include <od/tasks/InputTask.h>
+%include <od/tasks/TeletypeTask.h>
 %include <od/tasks/OutputTask.h>
 
 // units

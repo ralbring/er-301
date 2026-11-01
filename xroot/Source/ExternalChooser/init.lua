@@ -36,6 +36,8 @@ local externals = {
     app.getExternalSource("G3"),
     app.getExternalSource("G4")
   },
+  ["TT CV"] = {},
+  ["TT TR"] = {},
   OUTx = {
     app.getExternalSource("OUT1"),
     app.getExternalSource("OUT2"),
@@ -43,6 +45,15 @@ local externals = {
     app.getExternalSource("OUT4")
   }
 }
+
+for port = 1, app.TeletypeTask.CVOutletCount do
+  local list = externals["TT CV"]
+  list[#list + 1] = app.getExternalSource("TCV" .. port)
+end
+for port = 1, app.TeletypeTask.TROutletCount do
+  local list = externals["TT TR"]
+  list[#list + 1] = app.getExternalSource("TTR" .. port)
+end
 
 local ExternalChooser = Class {}
 ExternalChooser:include(SpottedStrip)
@@ -59,6 +70,8 @@ function ExternalChooser:init(ring)
   self:addSourceGroup("Cx", externals["Cx"])
   self:addSourceGroup("Dx", externals["Dx"])
   self:addSourceGroup("Gx", externals["Gx"])
+  self:addSourceGroup("TT CV", externals["TT CV"])
+  self:addSourceGroup("TT TR", externals["TT TR"])
   self:addSourceGroup("OUTx", externals["OUTx"])
 end
 

@@ -151,6 +151,18 @@ menuItems[#menuItems + 1] = {
   "addVariable",
   "usbMode"
 }
+menuItems[#menuItems + 1] = {
+  "addCategory",
+  "Teletype"
+}
+menuItems[#menuItems + 1] = {
+  "addVariable",
+  "teletypeEnable"
+}
+menuItems[#menuItems + 1] = {
+  "addVariable",
+  "teletypeAddress"
+}
 
 local Interface = Class {}
 Interface:include(Window)

@@ -22,9 +22,6 @@ local function install(self, archive)
     if not installFile(self, archive, "core-FIRMWARE_VERSION.pkg") then
       failed = failed + 1
     end
-    if not installFile(self, archive, "teletype-FIRMWARE_VERSION.pkg") then
-      failed = failed + 1
-    end
   end
   return failed == 0
 end

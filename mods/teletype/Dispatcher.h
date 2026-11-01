@@ -20,13 +20,6 @@ namespace teletype
     // preserves settings like pulse time and polarity
     void softReset();
 
-    // LOCAL PATCH (US-15): count of SC.CV/SC.TR value commands received and
-    // the port each last addressed, so the UI can see which port is driven.
-    int getCVEventCount();
-    int getLastCVPort();
-    int getTREventCount();
-    int getLastTRPort();
-
 #ifndef SWIGLUA
     void process(float *inputs, float *outputs);
 
@@ -74,13 +67,6 @@ namespace teletype
     double mSamplesPerTick;
     int mDefaultSlewTimeMs = 2;
     bool mEnabled = false;
-    volatile int mCVEventCount = 0;
-    volatile int mLastCVPort = 0;
-    volatile int mTREventCount = 0;
-    volatile int mLastTRPort = 0;
-
-    void noteCVEvent(int port);
-    void noteTREvent(int port);
 
     void updateTR();
     void updateCV();

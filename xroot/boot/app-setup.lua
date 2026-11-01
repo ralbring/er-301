@@ -63,6 +63,12 @@ function app.FittedTextBox(text, justify, shrink)
 end
 
 local externalSources = {}
+
+-- Built-in teletype i2c receiver (US-15); one instance, never released.
+local teletypeTask = app.TeletypeTask()
+function app.getTeletypeTask()
+  return teletypeTask
+end
 local externalDestinations = {}
 
 do
@@ -100,6 +106,17 @@ do
   externalSources["OUT2"] = Source("OUT2", outputTask.mMonitor2)
   externalSources["OUT3"] = Source("OUT3", outputTask.mMonitor3)
   externalSources["OUT4"] = Source("OUT4", outputTask.mMonitor4)
+
+  -- Built-in teletype i2c ports (US-15).
+  local teletypeTask = app.getTeletypeTask()
+  for port = 1, app.TeletypeTask.CVOutletCount do
+    local name = "TCV" .. port
+    externalSources[name] = Source(name, teletypeTask:getCVOutlet(port))
+  end
+  for port = 1, app.TeletypeTask.TROutletCount do
+    local name = "TTR" .. port
+    externalSources[name] = Source(name, teletypeTask:getTROutlet(port), true)
+  end
 
   externalDestinations["OUT1"] = outputTask.mOut1
   externalDestinations["OUT2"] = outputTask.mOut2
