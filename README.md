@@ -1,7 +1,27 @@
 # ER-301 Sound Computer
 
+## About this fork
+
+This is a fork of the official [odevices/er-301](https://github.com/odevices/er-301) firmware and SDK, based on release **v0.6.16**. Branch **`er301-project`** adds usability and i2c features developed in the *er301-project* (custom units, patches and firmware changes for the ER-301). Everything else is unchanged.
+
+**User manual for the added features: [docs/er301-project-manual.md](docs/er301-project-manual.md)**
+
+What the fork adds:
+
+* **Hold-to-edit on the sub buttons:** hold S1–S3 and turn the encoder to change a value, then release to return to parameter navigation. A short press works as before. Faders and V/Oct (S2 and S3) get sub-button editing too.
+* **Gain starts at 1**, so a chosen modulation source works right away.
+* **Automatic input assignment ("auto"):** S2 on *Set Chain Input*, or hold S1 on a modulatable control, maps the first jack, Teletype port or MIDI input that changes. Choosing an input in a modulation branch returns to the unit automatically.
+* **Built-in Teletype / i2c** (formerly the `teletype` package): received ports appear as ordinary inputs in the source chooser (groups TT CV, TT TR). The MIDI-to-i2c ports of the [Sweet Sixteen](https://github.com/ralbring/Sweet-Sixteen) appear in groups MIDI P/V/G/CC and DRUM T/V. Configure them under *Admin > Settings > Teletype*.
+* **True levels in the source overview:** the collapsed source groups show the actual (DC) level instead of an AC-coupled loudness.
+* **Fixes:** a SWIG binding that broke multi-file selection, a crash in `Timer` when callbacks create timers, and a build fix for current toolchains.
+
+Build the firmware as described below, for example `make firmware ARCH=am335x PROFILE=release`, and install the resulting zip via *Admin > Install Firmware*. To return to the official firmware, install the official v0.6.16 release. The license is unchanged (MIT, see [LICENSE.md](LICENSE.md)).
+
+Branch `us13-teletype-events` holds a separate, older Teletype event-buffer extension that the *Circuit Drums* unit needs. It is not part of `er301-project`.
+
 ## Table of Contents
 
+  * [About this fork](#about-this-fork)
   * [Introduction](#introduction)
   * [Emulator](#emulator)
     + [Compiling the emulator](#compiling-the-emulator)
