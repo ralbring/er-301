@@ -17,6 +17,11 @@ namespace od
   void LoudnessProbe::process()
   {
     float *input = mInput.buffer();
+    if (mDCCoupled)
+    {
+      mRunningRMS.push(input, FRAMELENGTH);
+      return;
+    }
     float *tmp = AudioThread::getFrame();
     float dc = mFastEWMA.push(input, FRAMELENGTH);
     for (int i = 0; i < FRAMELENGTH; i++)

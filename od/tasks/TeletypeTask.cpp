@@ -43,33 +43,32 @@ namespace od
     hardReset();
     // std::to_string is missing in the am335x toolchain
     char name[8];
-    for (int i = 0; i < CVOutletCount; i++)
+    mCVOutlets[NullPort] = 0;
+    mTROutlets[NullPort] = 0;
+    for (int port = MinPort; port <= MaxPort; port++)
     {
-      snprintf(name, sizeof(name), "TCV%d", i + 1);
-      mCVOutlets[i] = new Outlet(name);
-      own(*mCVOutlets[i]);
-      mCVOutletValues[i] = 0.0f;
-    }
-    for (int i = 0; i < TROutletCount; i++)
-    {
-      snprintf(name, sizeof(name), "TTR%d", i + 1);
-      mTROutlets[i] = new Outlet(name);
-      own(*mTROutlets[i]);
+      snprintf(name, sizeof(name), "CV%d", port);
+      mCVOutlets[port] = new Outlet(name);
+      own(*mCVOutlets[port]);
+      mCVOutletValues[port] = 0.0f;
+      snprintf(name, sizeof(name), "TR%d", port);
+      mTROutlets[port] = new Outlet(name);
+      own(*mTROutlets[port]);
     }
   }
 
   Outlet *TeletypeTask::getCVOutlet(int port)
   {
-    if (port < 1 || port > CVOutletCount)
+    if (port < MinPort || port > MaxPort)
       return 0;
-    return mCVOutlets[port - 1];
+    return mCVOutlets[port];
   }
 
   Outlet *TeletypeTask::getTROutlet(int port)
   {
-    if (port < 1 || port > TROutletCount)
+    if (port < MinPort || port > MaxPort)
       return 0;
-    return mTROutlets[port - 1];
+    return mTROutlets[port];
   }
 
   bool TeletypeTask::isEnabled()
@@ -79,20 +78,17 @@ namespace od
 
   void TeletypeTask::fillOutlets()
   {
-    for (int i = 0; i < CVOutletCount; i++)
+    for (int port = MinPort; port <= MaxPort; port++)
     {
-      Outlet *outlet = mCVOutlets[i];
+      Outlet *outlet = mCVOutlets[port];
       if (outlet->isConnected())
       {
-        mCVOutletValues[i] = fillCVFrame(i + 1, outlet->buffer(), mCVOutletValues[i]);
+        mCVOutletValues[port] = fillCVFrame(port, outlet->buffer(), mCVOutletValues[port]);
       }
-    }
-    for (int i = 0; i < TROutletCount; i++)
-    {
-      Outlet *outlet = mTROutlets[i];
+      outlet = mTROutlets[port];
       if (outlet->isConnected())
       {
-        fillTRFrame(i + 1, outlet->buffer());
+        fillTRFrame(port, outlet->buffer());
       }
     }
   }

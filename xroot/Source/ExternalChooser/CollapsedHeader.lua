@@ -38,6 +38,8 @@ function CollapsedHeader:init(title, sources)
     local meter = app.VerticalMeter(column * (width + gap) + offset, bottom,
                                     width, height)
     meter:watchOutlet(source:getOutlet())
+    -- show the actual level, not only changes (local patch, US-15)
+    meter:setLevelMode(true)
     graphic:addChild(meter)
   end
 

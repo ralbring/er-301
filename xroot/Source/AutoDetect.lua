@@ -4,15 +4,23 @@ local app = app
 local Class = require "Base.Class"
 local Timer = require "Timer"
 
-local sourceNames = {
+local jackNames = {
   "IN1", "IN2", "IN3", "IN4", "G1", "G2", "G3", "G4", "A1", "A2", "A3", "B1",
   "B2", "B3", "C1", "C2", "C3", "D1", "D2", "D3"
 }
-for port = 1, app.TeletypeTask.CVOutletCount do
-  sourceNames[#sourceNames + 1] = "TCV" .. port
-end
-for port = 1, app.TeletypeTask.TROutletCount do
-  sourceNames[#sourceNames + 1] = "TTR" .. port
+
+-- The jacks plus the teletype i2c sources, if enabled.
+local function getSources()
+  local sources = {}
+  for _, name in ipairs(jackNames) do
+    sources[#sources + 1] = app.getExternalSource(name)
+  end
+  for _, group in ipairs(app.getI2cSourceGroups()) do
+    for _, source in ipairs(group.sources) do
+      sources[#sources + 1] = source
+    end
+  end
+  return sources
 end
 
 -- Wait this long before taking the baseline, so the probes hold fresh data.
@@ -36,16 +44,13 @@ end
 function AutoDetect:start()
   self:stop()
   local probes = {}
-  for _, name in ipairs(sourceNames) do
-    local source = app.getExternalSource(name)
-    if source then
-      local probe = app.OutletProbe()
-      probe:watch(source:getOutlet())
-      probes[#probes + 1] = {
-        source = source,
-        probe = probe
-      }
-    end
+  for _, source in ipairs(getSources()) do
+    local probe = app.OutletProbe()
+    probe:watch(source:getOutlet())
+    probes[#probes + 1] = {
+      source = source,
+      probe = probe
+    }
   end
   self.probes = probes
   self.elapsed = 0

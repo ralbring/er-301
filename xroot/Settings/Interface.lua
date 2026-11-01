@@ -163,6 +163,10 @@ menuItems[#menuItems + 1] = {
   "addVariable",
   "teletypeAddress"
 }
+menuItems[#menuItems + 1] = {
+  "addVariable",
+  "teletypeMidi"
+}
 
 local Interface = Class {}
 Interface:include(Window)

@@ -40,10 +40,20 @@ namespace od
 
     const std::string &getDecibelText();
 
+    // LOCAL PATCH (US-15): show the actual level of CV/gate sources, i.e.
+    // keep DC and scale linearly (1.0 = full height) instead of in decibels.
+    void setLevelMode(bool value)
+    {
+      mLevelMode = value;
+      mProbe.setDCCoupled(value);
+    }
+
   private:
     LoudnessProbe mProbe;
     Outlet *mpWatchedOutlet = 0;
     float mDecibels = -160;
+    float mLevel = 0;
+    bool mLevelMode = false;
     float mPeak = 0;
 
     int mDisplayDecibels = 0;

@@ -25,10 +25,12 @@ namespace od
     if (mpWatchedOutlet == 0)
     {
       mDecibels = -160;
+      mLevel = 0;
       return;
     }
 
     float rms = mProbe.value();
+    mLevel = rms;
     if (rms > 0)
     {
       mDecibels = MAX(-160, 20 * log10f(rms));
@@ -76,14 +78,25 @@ namespace od
     int h0 = (int)((mHeight - 1) * (60.0f) / 72.0f);
     fb.box(GRAY7, mWorldLeft, mWorldBottom, mWorldLeft + mWidth,
            mWorldBottom + mHeight);
-    fb.hline(GRAY11, mWorldLeft, mWorldLeft + mWidth, mWorldBottom + h0);
+    if (!mLevelMode)
+    {
+      fb.hline(GRAY11, mWorldLeft, mWorldLeft + mWidth, mWorldBottom + h0);
+    }
 
     if (mCalculateCount < 0)
     {
       return;
     }
 
-    int h = (int)((mHeight - 1) * (60.0f + mDecibels) / 72.0f);
+    int h;
+    if (mLevelMode)
+    {
+      h = (int)((mHeight - 1) * mLevel);
+    }
+    else
+    {
+      h = (int)((mHeight - 1) * (60.0f + mDecibels) / 72.0f);
+    }
     if (h < 0)
       h = 0;
     if (h > mHeight - 1)

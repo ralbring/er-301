@@ -33,9 +33,16 @@ namespace od
       mRunningRMS.setPeriod(secs);
     }
 
+    // LOCAL PATCH (US-15): keep the DC part, so constant CV levels register.
+    void setDCCoupled(bool value)
+    {
+      mDCCoupled = value;
+    }
+
   protected:
     RunningRMS mRunningRMS;
     FastEWMA mFastEWMA;
+    bool mDCCoupled = false;
   };
 
 } /* namespace od */

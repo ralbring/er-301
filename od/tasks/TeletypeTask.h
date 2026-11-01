@@ -25,9 +25,7 @@ namespace od
     // preserves settings like pulse time and polarity
     void softReset();
 
-    static const int CVOutletCount = 16;
-    static const int TROutletCount = 8;
-    // port is 1-based, as in SC.CV/SC.TR
+    // port is 1-based, as in SC.CV/SC.TR (1 to MaxPort)
     Outlet *getCVOutlet(int port);
     Outlet *getTROutlet(int port);
     bool isEnabled();
@@ -80,9 +78,10 @@ namespace od
     int mDefaultSlewTimeMs = 2;
     bool mEnabled = false;
 
-    Outlet *mCVOutlets[CVOutletCount];
-    Outlet *mTROutlets[TROutletCount];
-    float mCVOutletValues[CVOutletCount];
+    // one outlet per port, index 0 (NullPort) unused
+    Outlet *mCVOutlets[PortCount];
+    Outlet *mTROutlets[PortCount];
+    float mCVOutletValues[PortCount];
 
     void fillOutlets();
 

@@ -69,6 +69,25 @@ local teletypeTask = app.TeletypeTask()
 function app.getTeletypeTask()
   return teletypeTask
 end
+
+-- Ordered groups {title, sources} of the teletype i2c sources (US-15).
+local i2cSourceGroups = {}
+
+-- Empty while teletype i2c is disabled in Admin > Settings (and without the
+-- MIDI groups while MIDI via i2c is disabled), so those sources are neither
+-- offered in the chooser nor watched by auto-detect. Saved assignments still
+-- resolve through app.getExternalSource().
+function app.getI2cSourceGroups()
+  local Settings = require "Settings"
+  if Settings.get("teletypeEnable") ~= "yes" then return {} end
+  if Settings.get("teletypeMidi") == "yes" then return i2cSourceGroups end
+  local groups = {}
+  for _, g in ipairs(i2cSourceGroups) do
+    if not g.isMidi then groups[#groups + 1] = g end
+  end
+  return groups
+end
+
 local externalDestinations = {}
 
 do
@@ -107,17 +126,47 @@ do
   externalSources["OUT3"] = Source("OUT3", outputTask.mMonitor3)
   externalSources["OUT4"] = Source("OUT4", outputTask.mMonitor4)
 
-  -- Built-in teletype i2c ports (US-15).
+  -- Built-in teletype i2c ports (US-15), laid out for the Sweet Sixteen
+  -- (16n firmware): faders, GESS gates and its MIDI-to-i2c conversion.
+  -- Values sent over i2c are never negative, so all sources are unipolar.
   local teletypeTask = app.getTeletypeTask()
-  for port = 1, app.TeletypeTask.CVOutletCount do
-    local name = "TCV" .. port
-    -- teletype CV values are never negative
-    externalSources[name] = Source(name, teletypeTask:getCVOutlet(port), true)
+  local function group(title, isMidi)
+    local g = {
+      title = title,
+      isMidi = isMidi,
+      sources = {}
+    }
+    i2cSourceGroups[#i2cSourceGroups + 1] = g
+    return g
   end
-  for port = 1, app.TeletypeTask.TROutletCount do
-    local name = "TTR" .. port
-    externalSources[name] = Source(name, teletypeTask:getTROutlet(port), true)
+  -- Adds sources <prefix><firstNumber>... for count consecutive ports.
+  local function add(g, kind, firstPort, count, prefix, firstNumber)
+    for i = 0, count - 1 do
+      local port = firstPort + i
+      local outlet
+      if kind == "CV" then
+        outlet = teletypeTask:getCVOutlet(port)
+      else
+        outlet = teletypeTask:getTROutlet(port)
+      end
+      local name = prefix .. (firstNumber + i)
+      local source = Source(name, outlet, true)
+      externalSources[name] = source
+      g.sources[#g.sources + 1] = source
+    end
   end
+  add(group("TT CV"), "CV", 1, 16, "TCV", 1)
+  add(group("TT TR"), "TR", 1, 8, "TTR", 1)
+  -- MIDI channels 1-8 (pitch: note number 21 = 0V, 1V/oct)
+  add(group("MIDI P", true), "CV", 21, 8, "MP", 1)
+  add(group("MIDI V", true), "CV", 31, 8, "MV", 1)
+  add(group("MIDI G", true), "TR", 21, 8, "MG", 1)
+  local cc = group("MIDI CC", true)
+  add(cc, "CV", 41, 8, "MA", 1) -- CC 33
+  add(cc, "CV", 51, 8, "MB", 1) -- CC 34
+  -- MIDI channel 10 (drums), notes 36-51
+  add(group("DRUM T", true), "TR", 61, 16, "DT", 36)
+  add(group("DRUM V", true), "CV", 61, 16, "DV", 36)
 
   externalDestinations["OUT1"] = outputTask.mOut1
   externalDestinations["OUT2"] = outputTask.mOut2

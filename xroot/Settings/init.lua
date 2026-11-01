@@ -288,6 +288,15 @@ local defaults = {
       TeletypeI2c.refresh()
     end
   },
+  teletypeMidi = {
+    category = "Teletype",
+    description = "MIDI via i2c?",
+    value = "yes",
+    choices = {
+      "yes",
+      "no"
+    }
+  },
   teletypeAddress = {
     category = "Teletype",
     description = "Teletype i2c address:",
