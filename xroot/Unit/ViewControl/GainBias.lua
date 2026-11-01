@@ -97,7 +97,7 @@ function GainBias:init(args)
   -- optional arguments
   self:setDefaults(args)
   local initialBias = args.initialBias
-  local initialGain = args.initialGain
+  local initialGain = args.initialGain or 1.0 -- US-14: sources work right away
   local biasMap = args.biasMap
   local gainMap = args.gainMap
   local biasUnits = args.biasUnits

@@ -49,7 +49,46 @@ function Fader:init(args)
 
   self.subGraphic = app.Graphic(0, 0, 128, 64)
 
+  -- Not displayed: converts the value to and from the fader's units for the
+  -- sub button hold logic and the keyboard (US-14).
+  self.valueReadout = app.Readout(0, 0, ply, 10)
+  self.valueReadout:setParameter(param)
+  self.valueReadout:setAttributes(units, map)
+  self.valueReadout:setPrecision(precision)
+  self.focusedReadout = self.valueReadout
+
   if monitor then self:setScopeTarget(monitor) end
+end
+
+function Fader:doValueSet()
+  local Decimal = require "Keyboard.Decimal"
+  local kb = Decimal {
+    message = string.format("Value for the '%s' parameter.", self.description),
+    commitMessage = string.format("%s updated.", self.description),
+    initialValue = self.valueReadout:getValueInUnits()
+  }
+  local task = function(value)
+    if value then
+      self.fader:save()
+      self.valueReadout:setValueInUnits(value)
+      self:unfocus()
+    end
+  end
+  kb:subscribe("done", task)
+  kb:subscribe("commit", task)
+  kb:show()
+end
+
+function Fader:subPressed(i, shifted)
+  if shifted then return true end
+  self:beginSubHold(i, self.valueReadout)
+  if not self:hasFocus("encoder") then self:focus() end
+  return true
+end
+
+function Fader:subReleased(i, shifted)
+  if self:endSubHold(i) == "resume" then self:doValueSet() end
+  return true
 end
 
 function Fader:setDefaults(args)

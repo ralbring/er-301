@@ -128,6 +128,8 @@ function Pitch:init(args)
   self.readout:setAttributes(app.unitCents, defaultMap)
   self.readout:setPrecision(0)
   self.subGraphic:addChild(self.readout)
+  -- the only readout, needed by the sub button hold logic (US-14)
+  self.focusedReadout = self.readout
 
   graphic = app.Label(description, 10)
   graphic:fitToText(3)
@@ -416,7 +418,21 @@ function Pitch:doTuneSet()
   kb:show()
 end
 
+function Pitch:subPressed(i, shifted)
+  if shifted or i ~= 2 then return true end
+  self:beginSubHold(i, self.readout)
+  if not self:hasFocus("encoder") then self:focus() end
+  return true
+end
+
 function Pitch:subReleased(i, shifted)
+  local hold = self:endSubHold(i)
+  if hold == "resume" then
+    self:doTuneSet()
+    return true
+  elseif hold then
+    return true
+  end
   if shifted then return false end
   if i == 1 then
     local branch = self.branch
