@@ -298,6 +298,14 @@ function ViewControl:upReleased(shifted)
   return true
 end
 
+-- Long press time for the sub buttons: the floating menu's long press time
+-- (Admin > Settings) plus a margin, so short presses are not mistaken for
+-- holds (local patch, US-14/US-15).
+local function getSubHoldTime()
+  local FloatingMenu = require "Overlay.FloatingMenu"
+  return FloatingMenu.getDelayTime() + 0.15
+end
+
 -- Hold-to-edit for sub buttons (local patch, US-14). Call from subPressed
 -- before focusing the readout; the readout must be focused right away so
 -- that the encoder edits it while the button is held.
@@ -311,8 +319,7 @@ function ViewControl:beginSubHold(i, readout)
     held = false
   }
   local Timer = require "Timer"
-  local FloatingMenu = require "Overlay.FloatingMenu"
-  hold.timer = Timer.after(FloatingMenu.getDelayTime(), function()
+  hold.timer = Timer.after(getSubHoldTime(), function()
     hold.timer = nil
     hold.held = true
   end)
@@ -345,6 +352,16 @@ function ViewControl:endSubHold(i)
   end
 end
 
+-- Opens the modulation branch with the cursor on its chain input, which is
+-- what one usually wants to set on entering (local patch, US-15).
+function ViewControl:showBranch()
+  local branch = self.branch
+  if branch == nil then return end
+  self:unfocus()
+  branch:show()
+  branch:setSelection(branch.headerSection, nil, 1)
+end
+
 -- Hold S1 to auto-assign the modulation branch input (local patch, US-15).
 -- Call from subPressed for S1; listening starts after the hold threshold.
 function ViewControl:beginBranchHold()
@@ -355,8 +372,7 @@ function ViewControl:beginBranchHold()
     done = false
   }
   local Timer = require "Timer"
-  local FloatingMenu = require "Overlay.FloatingMenu"
-  hold.timer = Timer.after(FloatingMenu.getDelayTime(), function()
+  hold.timer = Timer.after(getSubHoldTime(), function()
     hold.timer = nil
     hold.listening = true
     local AutoDetect = require "Source.AutoDetect"

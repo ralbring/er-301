@@ -139,21 +139,23 @@ do
     i2cSourceGroups[#i2cSourceGroups + 1] = g
     return g
   end
+  local function addSource(g, kind, port, name)
+    local outlet
+    if kind == "CV" then
+      outlet = teletypeTask:getCVOutlet(port)
+    else
+      outlet = teletypeTask:getTROutlet(port)
+    end
+    local source = Source(name, outlet, true)
+    externalSources[name] = source
+    g.sources[#g.sources + 1] = source
+  end
   -- Adds sources <prefix><firstNumber><suffix>... for count consecutive
   -- ports.
   local function add(g, kind, firstPort, count, prefix, firstNumber, suffix)
     for i = 0, count - 1 do
-      local port = firstPort + i
-      local outlet
-      if kind == "CV" then
-        outlet = teletypeTask:getCVOutlet(port)
-      else
-        outlet = teletypeTask:getTROutlet(port)
-      end
       local name = prefix .. (firstNumber + i) .. (suffix or "")
-      local source = Source(name, outlet, true)
-      externalSources[name] = source
-      g.sources[#g.sources + 1] = source
+      addSource(g, kind, firstPort + i, name)
     end
   end
   add(group("TT CV"), "CV", 1, 16, "TCV", 1)
@@ -165,9 +167,18 @@ do
   local cc = group("MIDI CC", true)
   add(cc, "CV", 41, 8, "CC", 1, "/33") -- CC1/33 = CC 33 on channel 1
   add(cc, "CV", 51, 8, "CC", 1, "/34")
-  -- MIDI channel 10 (drums), notes 36-51
-  add(group("DRUM T", true), "TR", 61, 16, "DT", 36)
-  add(group("DRUM V", true), "CV", 61, 16, "DV", 36)
+  -- MIDI channel 10 (drums), notes 36-51, named by note (36 = C3); the prefix keeps them apart from jacks A1-D3.
+  local noteNames = {
+    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+  }
+  local drumTriggers = group("DRUM T", true)
+  local drumVelocities = group("DRUM V", true)
+  for note = 36, 51 do
+    local noteName = noteNames[note % 12 + 1] .. (note // 12)
+    local port = note + 25
+    addSource(drumTriggers, "TR", port, "DT-" .. noteName)
+    addSource(drumVelocities, "CV", port, "DV-" .. noteName)
+  end
 
   externalDestinations["OUT1"] = outputTask.mOut1
   externalDestinations["OUT2"] = outputTask.mOut2

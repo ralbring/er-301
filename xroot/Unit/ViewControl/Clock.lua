@@ -192,11 +192,7 @@ function Clock:subReleased(i, shifted)
   if self:endSubHold(i) then return true end
   if shifted then return false end
   if i == 1 then
-    local branch = self.branch
-    if branch then
-      self:unfocus()
-      branch:show()
-    end
+    self:showBranch()
   elseif i == 2 then
     if not self:hasFocus("encoder") then self:focus() end
     self:setFocusedReadout(self.multiplier)

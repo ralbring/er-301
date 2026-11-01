@@ -744,11 +744,7 @@ function GainBias:subReleased(i, shifted)
     return true
   end
   if i == 1 then
-    local branch = self.branch
-    if branch then
-      self:unfocus()
-      branch:show()
-    end
+    self:showBranch()
   elseif i == 2 then
     if self:hasFocus("encoder") then
       if self.focusedReadout == self.gain then

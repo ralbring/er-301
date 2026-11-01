@@ -243,11 +243,7 @@ function BranchMeter:subReleased(i, shifted)
     return false
   else
     if i == 1 then
-      local branch = self.branch
-      if branch then
-        self:unfocus()
-        branch:show()
-      end
+      self:showBranch()
     elseif i == 2 then
       -- solo
       self:callUp("toggleSoloOnControl", self)
