@@ -2,7 +2,12 @@
 %import <od/glue/prologue.cpp.swig>
 %typemap(out) std::vector<std::string>
 %{
-	stringVectorToLuaTable(L, $1);
+	{
+		// LOCAL PATCH (R-7): $1 may be a SwigValueWrapper whose conversion
+		// yields an rvalue; bind it to a named lvalue before passing it on.
+		std::vector<std::string> vec_out = $1;
+		stringVectorToLuaTable(L, vec_out);
+	}
 	SWIG_arg++;
 %}
 
@@ -378,16 +383,6 @@ bool Uart_isEnabled();
 
 %include <od/graphics/holdview/MorphFader.h>
 %include <od/graphics/holdview/TriggerGroup.h>
-
-// LOCAL PATCH (not part of upstream v0.6.16, not committed): SWIG has no
-// std::vector<std::string> typemap registered here, so it falls back to
-// wrapping FileBrowser::getCheckedPaths()'s by-value return via
-// SwigValueWrapper<T>, whose T&& conversion then fails to bind to the
-// T& parameter expected by the generated stringVectorToLuaTable() call
-// -- a hard C++ error independent of compiler/SWIG version. Ignoring
-// this one method only drops its Lua binding; nothing else in
-// FileBrowser is affected.
-%ignore od::FileBrowser::getCheckedPaths;
 
 %include <od/graphics/fs/FileBrowser.h>
 
