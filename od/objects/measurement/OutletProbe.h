@@ -2,6 +2,7 @@
 
 #include <od/objects/Outlet.h>
 #include <od/objects/measurement/FifoProbe.h>
+#include <hal/timing.h>
 
 namespace od
 {
@@ -18,7 +19,8 @@ namespace od
     void watch(Outlet *outlet);
     void release();
 
-    // Recomputes mean and peak-to-peak over the most recent samples.
+    // Recomputes mean and peak-to-peak over the samples received since the
+    // previous update, so short pulses between two updates are not missed.
     void update();
     float mean();
     float peakToPeak();
@@ -28,6 +30,8 @@ namespace od
     FifoProbe *mpProbe = 0;
     float mMean = 0.0f;
     float mPeakToPeak = 0.0f;
+    tick_t mLastUpdate = 0;
+    bool mFirstUpdate = true;
   };
 
 } /* namespace od */

@@ -1,8 +1,10 @@
 #include <od/objects/measurement/OutletProbe.h>
 #include <od/AudioThread.h>
 
-// Number of (decimated) samples to evaluate, roughly the last 50 ms.
-#define OUTLETPROBE_WINDOW 1200
+// Minimum number of (decimated) samples to evaluate per update, and extra
+// samples to cover jitter between updates.
+#define OUTLETPROBE_MIN_WINDOW 256
+#define OUTLETPROBE_MARGIN 128
 
 namespace od
 {
@@ -29,6 +31,8 @@ namespace od
       mpProbe->reset();
       AudioThread::connect(mpOutlet, &mpProbe->mInput);
     }
+    mLastUpdate = ticks();
+    mFirstUpdate = true;
   }
 
   void OutletProbe::release()
@@ -52,10 +56,19 @@ namespace od
   {
     if (mpProbe == 0)
       return;
-    int n = (int)mpProbe->size();
-    if (n > OUTLETPROBE_WINDOW)
-      n = OUTLETPROBE_WINDOW;
-    if (n == 0)
+    tick_t now = ticks();
+    float elapsed = ticks2secs(now - mLastUpdate);
+    mLastUpdate = now;
+    int size = (int)mpProbe->size();
+    // The first update must not reach back into the probe's cleared buffer.
+    int n = (int)(elapsed * mpProbe->getRate()) +
+            (mFirstUpdate ? -OUTLETPROBE_MARGIN : OUTLETPROBE_MARGIN);
+    mFirstUpdate = false;
+    if (n < OUTLETPROBE_MIN_WINDOW)
+      n = OUTLETPROBE_MIN_WINDOW;
+    if (n > size)
+      n = size;
+    if (n <= 0)
       return;
     float *values = mpProbe->get(n);
     float sum = 0.0f;
