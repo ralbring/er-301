@@ -188,6 +188,7 @@ function Clock:cancelReleased(shifted)
 end
 
 function Clock:subReleased(i, shifted)
+  if i == 1 and self:endBranchHold() then return true end
   if self:endSubHold(i) then return true end
   if shifted then return false end
   if i == 1 then
@@ -207,6 +208,10 @@ function Clock:subReleased(i, shifted)
 end
 
 function Clock:subPressed(i, shifted)
+  if i == 1 and not shifted then
+    self:beginBranchHold()
+    return true
+  end
   if shifted or (i ~= 2 and i ~= 3) then return true end
   local readout = i == 2 and self.multiplier or self.divider
   self:beginSubHold(i, readout)

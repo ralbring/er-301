@@ -18,11 +18,25 @@ function CollapsedHeader:init(title, sources)
   local n = #sources
   local width = 6
   local gap = 2
-  local offset = ply // 2 - (n * (width + gap)) // 2
+  -- Large groups (the teletype ports) get rows of at most 8 narrower meters
+  -- so they stay within the section (local patch, US-15).
+  local columns = math.min(n, 8)
+  local rows = (n + columns - 1) // columns
+  local pitch = (ply - 2) // math.max(columns, 1)
+  if pitch < width + gap then
+    gap = 1
+    width = math.max(pitch - gap, 1)
+  end
+  local rowGap = 3
+  local height = (44 - (rows - 1) * rowGap) // rows
+  local offset = ply // 2 - (columns * (width + gap)) // 2
 
   for i, source in ipairs(sources) do
-    local meter = app.VerticalMeter((i - 1) * (width + gap) + offset, 8, width,
-                                   44)
+    local column = (i - 1) % columns
+    local row = (i - 1) // columns
+    local bottom = 8 + (rows - 1 - row) * (height + rowGap)
+    local meter = app.VerticalMeter(column * (width + gap) + offset, bottom,
+                                    width, height)
     meter:watchOutlet(source:getOutlet())
     graphic:addChild(meter)
   end

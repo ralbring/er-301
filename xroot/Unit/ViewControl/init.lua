@@ -127,6 +127,7 @@ end
 function ViewControl:onCursorLeave(spot)
   -- app.logInfo("%s.onCursorLeave(%s)",self,spot)
   self:cancelSubHold()
+  self:cancelBranchHold()
   self:removeSubGraphic(self.subGraphic)
   self:releaseFocus("dialPressed", "dialReleased", "subPressed", "subReleased",
                     "homeReleased", "homePressed", "zeroPressed",
@@ -342,6 +343,70 @@ function ViewControl:endSubHold(i)
   else
     return "short"
   end
+end
+
+-- Hold S1 to auto-assign the modulation branch input (local patch, US-15).
+-- Call from subPressed for S1; listening starts after the hold threshold.
+function ViewControl:beginBranchHold()
+  self:cancelBranchHold()
+  if self.branch == nil then return end
+  local hold = {
+    listening = false,
+    done = false
+  }
+  local Timer = require "Timer"
+  local FloatingMenu = require "Overlay.FloatingMenu"
+  hold.timer = Timer.after(FloatingMenu.getDelayTime(), function()
+    hold.timer = nil
+    hold.listening = true
+    local AutoDetect = require "Source.AutoDetect"
+    hold.detector = AutoDetect(function(source)
+      self:onBranchSourceFound(source)
+    end)
+    hold.detector:start()
+    local Overlay = require "Overlay"
+    Overlay.startMainMessage("Listening for a source...")
+  end)
+  self.branchHold = hold
+end
+
+function ViewControl:cancelBranchHold()
+  local hold = self.branchHold
+  if hold == nil then return end
+  if hold.timer then
+    local Timer = require "Timer"
+    Timer.cancel(hold.timer)
+  end
+  if hold.detector then hold.detector:stop() end
+  if hold.listening then
+    local Overlay = require "Overlay"
+    Overlay.endMainMessage()
+  end
+  self.branchHold = nil
+end
+
+-- Call at the top of subReleased for S1. Returns true if S1 was held, in
+-- which case the release must not open the branch.
+function ViewControl:endBranchHold()
+  local hold = self.branchHold
+  if hold == nil then return false end
+  local held = hold.listening or hold.done
+  self:cancelBranchHold()
+  return held
+end
+
+function ViewControl:onBranchSourceFound(source)
+  local hold = self.branchHold
+  if hold then
+    hold.listening = false
+    hold.done = true
+  end
+  local Overlay = require "Overlay"
+  Overlay.endMainMessage()
+  local branch = self.branch
+  branch:setInputSource(1, source)
+  if branch.channelCount == 2 then branch:setInputSource(2, source) end
+  Overlay.flashMainMessage("Input: %s", source:getDisplayName())
 end
 
 function ViewControl:onRemove()

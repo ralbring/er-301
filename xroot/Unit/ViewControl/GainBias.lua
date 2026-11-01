@@ -706,6 +706,10 @@ function GainBias:doBiasSet()
 end
 
 function GainBias:subPressed(i, shifted)
+  if i == 1 and not shifted then
+    self:beginBranchHold()
+    return true
+  end
   if shifted or (i ~= 2 and i ~= 3) then return true end
   local readout = i == 2 and self.gain or self.bias
   self:beginSubHold(i, readout)
@@ -719,6 +723,7 @@ function GainBias:subPressed(i, shifted)
 end
 
 function GainBias:subReleased(i, shifted)
+  if i == 1 and self:endBranchHold() then return true end
   local hold = self:endSubHold(i)
   if hold == "resume" then
     if i == 2 then

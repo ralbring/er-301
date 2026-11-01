@@ -229,7 +229,16 @@ function BranchMeter:onFocused()
   self.fader:save()
 end
 
+function BranchMeter:subPressed(i, shifted)
+  if i == 1 and not shifted then
+    self:beginBranchHold()
+    return true
+  end
+  return true
+end
+
 function BranchMeter:subReleased(i, shifted)
+  if i == 1 and self:endBranchHold() then return true end
   if shifted then
     return false
   else

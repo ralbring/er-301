@@ -111,7 +111,8 @@ do
   local teletypeTask = app.getTeletypeTask()
   for port = 1, app.TeletypeTask.CVOutletCount do
     local name = "TCV" .. port
-    externalSources[name] = Source(name, teletypeTask:getCVOutlet(port))
+    -- teletype CV values are never negative
+    externalSources[name] = Source(name, teletypeTask:getCVOutlet(port), true)
   end
   for port = 1, app.TeletypeTask.TROutletCount do
     local name = "TTR" .. port

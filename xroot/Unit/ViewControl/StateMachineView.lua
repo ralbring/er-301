@@ -179,6 +179,7 @@ function StateMachineView:cancelReleased(shifted)
 end
 
 function StateMachineView:subReleased(i, shifted)
+  if i == 1 and self:endBranchHold() then return true end
   if shifted then return false end
   if i == 1 then
     local branch = self.branch
@@ -196,6 +197,10 @@ function StateMachineView:subReleased(i, shifted)
 end
 
 function StateMachineView:subPressed(i, shifted)
+  if i == 1 and not shifted then
+    self:beginBranchHold()
+    return true
+  end
   if shifted then return false end
   if i == 3 then self.comparator:simulateRisingEdge(); end
   return true

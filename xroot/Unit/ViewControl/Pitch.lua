@@ -420,6 +420,10 @@ end
 
 -- S3 is otherwise unused, so it acts like S2 (tune).
 function Pitch:subPressed(i, shifted)
+  if i == 1 and not shifted then
+    self:beginBranchHold()
+    return true
+  end
   if shifted or (i ~= 2 and i ~= 3) then return true end
   self:beginSubHold(i, self.readout)
   if not self:hasFocus("encoder") then self:focus() end
@@ -427,6 +431,7 @@ function Pitch:subPressed(i, shifted)
 end
 
 function Pitch:subReleased(i, shifted)
+  if i == 1 and self:endBranchHold() then return true end
   local hold = self:endSubHold(i)
   if hold == "resume" then
     self:doTuneSet()

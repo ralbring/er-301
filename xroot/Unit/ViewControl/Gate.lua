@@ -362,6 +362,7 @@ function Gate:doThresholdSet()
 end
 
 function Gate:subReleased(i, shifted)
+  if i == 1 and self:endBranchHold() then return true end
   local hold = self:endSubHold(i)
   if hold == "resume" then
     self:doThresholdSet()
@@ -394,6 +395,10 @@ function Gate:subReleased(i, shifted)
 end
 
 function Gate:subPressed(i, shifted)
+  if i == 1 and not shifted then
+    self:beginBranchHold()
+    return true
+  end
   if shifted then return false end
   if i == 3 then
     self.comparator:simulateRisingEdge()

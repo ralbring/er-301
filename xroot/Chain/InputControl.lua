@@ -116,7 +116,7 @@ end
 function InputControl:subReleased(i, shifted)
   if shifted then return end
   if i == 2 then
-    if self.autoTimer then
+    if self.autoDetect and self.autoDetect:isActive() then
       self:stopAuto()
     else
       self:startAuto()
@@ -128,92 +128,20 @@ function InputControl:subReleased(i, shifted)
   return true
 end
 
--- "auto" (US-15): listen to the jacks and the built-in teletype ports, then
--- map whichever becomes active first.
-local autoJacks = {
-  "IN1", "IN2", "IN3", "IN4", "G1", "G2", "G3", "G4", "A1", "A2", "A3", "B1",
-  "B2", "B3", "C1", "C2", "C3", "D1", "D2", "D3"
-}
-for port = 1, app.TeletypeTask.CVOutletCount do
-  autoJacks[#autoJacks + 1] = "TCV" .. port
-end
-for port = 1, app.TeletypeTask.TROutletCount do
-  autoJacks[#autoJacks + 1] = "TTR" .. port
-end
--- Wait this long before taking the baseline, so the probes hold fresh data.
-local autoSettleTime = 0.3
-local autoPollPeriod = 0.05
--- Change from the baseline that counts as activity (1.0 = full scale).
-local autoMeanThreshold = 0.02
-local autoSpreadThreshold = 0.05
-
+-- "auto" (US-15): map whichever source becomes active first.
 function InputControl:startAuto()
-  local chain = self:getWindow()
-  if chain == nil then return end
-  local probes = {}
-  for _, name in ipairs(autoJacks) do
-    local source = app.getExternalSource(name)
-    if source then
-      local probe = app.OutletProbe()
-      probe:watch(source:getOutlet())
-      probes[#probes + 1] = {
-        source = source,
-        probe = probe
-      }
-    end
+  if self:getWindow() == nil then return end
+  if self.autoDetect == nil then
+    local AutoDetect = require "Source.AutoDetect"
+    self.autoDetect = AutoDetect(function(source) self:mapJack(source) end)
   end
-  self.autoProbes = probes
-  self.autoElapsed = 0
-  self.autoBaseline = false
+  self.autoDetect:start()
   self.titleLabel:setText("Listening...")
-  local Timer = require "Timer"
-  -- Timer.update may call this several times within one slow UI frame, even
-  -- after stopAuto() cancelled it; returning false ends that loop.
-  local handle
-  handle = Timer.every(autoPollPeriod, function()
-    if self.autoTimer ~= handle then return false end
-    self:pollAuto()
-    if self.autoTimer ~= handle then return false end
-  end)
-  self.autoTimer = handle
 end
 
 function InputControl:stopAuto()
-  if self.autoTimer then
-    local Timer = require "Timer"
-    Timer.cancel(self.autoTimer)
-    self.autoTimer = nil
-  end
-  if self.autoProbes then
-    for _, entry in ipairs(self.autoProbes) do entry.probe:release() end
-    self.autoProbes = nil
-  end
+  if self.autoDetect then self.autoDetect:stop() end
   self.titleLabel:setText("Set Chain Input")
-end
-
-function InputControl:pollAuto()
-  self.autoElapsed = self.autoElapsed + autoPollPeriod
-  if self.autoElapsed < autoSettleTime then return end
-
-  if not self.autoBaseline then
-    for _, entry in ipairs(self.autoProbes) do
-      entry.probe:update()
-      entry.mean = entry.probe:mean()
-      entry.spread = entry.probe:peakToPeak()
-    end
-    self.autoBaseline = true
-    return
-  end
-
-  for _, entry in ipairs(self.autoProbes) do
-    local probe = entry.probe
-    probe:update()
-    if math.abs(probe:mean() - entry.mean) > autoMeanThreshold or
-        probe:peakToPeak() > 2 * entry.spread + autoSpreadThreshold then
-      self:mapJack(entry.source)
-      return
-    end
-  end
 end
 
 function InputControl:mapJack(source)
